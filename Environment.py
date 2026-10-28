@@ -1,4 +1,6 @@
-﻿import random
+import random
+
+from MapChecker import MapChecker
 
 
 class GridWorld:
@@ -29,6 +31,8 @@ class GridWorld:
         self.hit_wall_num = 0
         self.goal_reward = 10
         self.rng = random.Random(seed)
+        self.map_checker = MapChecker()
+        self.max_generation_attempts = 1000
 
         self.map_grid = []
         self.player_row = 0
@@ -37,22 +41,13 @@ class GridWorld:
         self.reset()
 
     def reset(self):
-        """重置地图、玩家和积分，返回初始状态。"""
+        """生成可解地图，重置玩家和积分，返回初始状态。"""
         if self.mode == "fixed":
-            # 固定模式：用相同种子，从头生成同一张地图。
+            # 固定模式只在本次 reset 开头重置种子，重试时继续抽取。
             rng = random.Random(self.seed)
         else:
-            # 随机模式：继续使用已有随机数生成器。
             rng = self.rng
 
-        self.map_grid = []
-        for row_index in range(self.rows):
-            new_row = []
-            for col_index in range(self.cols):
-                new_row.append(".")
-            self.map_grid.append(new_row)
-
-        # 集合用于判断哪些坐标不能放障碍。
         protected = {
             self.start,
             self.goal,
@@ -69,35 +64,66 @@ class GridWorld:
                 if position not in protected:
                     available_positions.append(position)
 
-        obstacle_positions = rng.sample(available_positions, 15)
-        for position in obstacle_positions:
-            row_index = position[0]
-            col_index = position[1]
-            self.map_grid[row_index][col_index] = "#"
+        map_generated = False
+        for attempt_index in range(self.max_generation_attempts):
+            candidate_map = []
+            for row_index in range(self.rows):
+                new_row = []
+                for col_index in range(self.cols):
+                    new_row.append(".")
+                candidate_map.append(new_row)
 
-        reward_positions = []
-        for row_index in range(self.rows):
-            for col_index in range(self.cols):
-                position = (row_index, col_index)
+            obstacle_positions = rng.sample(available_positions, 15)
+            for position in obstacle_positions:
+                row_index = position[0]
+                col_index = position[1]
+                candidate_map[row_index][col_index] = "#"
 
-                if position == self.start:
-                    continue
-                if position == self.goal:
-                    continue
-                if self.map_grid[row_index][col_index] == "#":
-                    continue
+            # 没有通路就丢弃候选地图，重新抽取障碍。
+            can_reach_goal = self.map_checker.can_reach_goal(
+                candidate_map, self.start, self.goal
+            )
+            if not can_reach_goal:
+                continue
 
-                reward_positions.append(position)
+            # 到终点就会结束，所以奖励必须能在不经过终点时领取。
+            reachable_before_goal = self.map_checker.get_reachable_positions(
+                candidate_map, self.start, blocked_position=self.goal
+            )
 
-        selected_rewards = rng.sample(reward_positions, 5)
-        for position in selected_rewards:
-            row_index = position[0]
-            col_index = position[1]
-            self.map_grid[row_index][col_index] = "$"
+            reward_positions = []
+            # 保持按行、列的顺序收集候选位置，保证固定种子可复现。
+            for row_index in range(self.rows):
+                for col_index in range(self.cols):
+                    position = (row_index, col_index)
+                    if position == self.start:
+                        continue
+                    if position == self.goal:
+                        continue
+                    if position not in reachable_before_goal:
+                        continue
+                    reward_positions.append(position)
 
-        goal_row = self.goal[0]
-        goal_col = self.goal[1]
-        self.map_grid[goal_row][goal_col] = "P"
+            if len(reward_positions) < 5:
+                continue
+
+            selected_rewards = rng.sample(reward_positions, 5)
+            for position in selected_rewards:
+                row_index = position[0]
+                col_index = position[1]
+                candidate_map[row_index][col_index] = "$"
+
+            goal_row = self.goal[0]
+            goal_col = self.goal[1]
+            candidate_map[goal_row][goal_col] = "P"
+            self.map_grid = candidate_map
+            map_generated = True
+            break
+
+        if not map_generated:
+            raise RuntimeError(
+                f"尝试 {self.max_generation_attempts} 次后仍无法生成可解地图"
+            )
 
         self.player_row = self.start[0]
         self.player_col = self.start[1]
