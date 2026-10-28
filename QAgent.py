@@ -1,7 +1,7 @@
 import random
 
 class QAgent:
-    def __init__(self, actions, alpha=0.1, gamma=0.95, epsilon=0.2):
+    def __init__(self, actions, alpha=0.1, gamma=0.95, epsilon=0.2, rng=None):
         # 每个键是 (状态, 动作)，每个值是对应的 Q 值。
         self.q_table = {}
 
@@ -12,6 +12,11 @@ class QAgent:
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
+        # 桌面实验为训练和评估传入独立生成器；旧的调用方式仍可使用。
+        if rng is None:
+            self.rng = random
+        else:
+            self.rng = rng
 
     def get_q(self, state, action):
         # 先组合字典的键，再检查是否已有记录。
@@ -26,12 +31,12 @@ class QAgent:
 
     def choose_action(self, state):
         """以 epsilon 的概率探索，否则选择当前 Q 值最大的动作。"""
-        random_number = random.random()
+        random_number = self.rng.random()
         exploration_probability = self.epsilon
 
         if random_number < exploration_probability:
             # 探索：从动作列表中随机选择一个动作。
-            action = random.choice(self.actions)
+            action = self.rng.choice(self.actions)
             return action
 
         # 利用：先把第一个动作当成当前最好的动作。
@@ -54,7 +59,7 @@ class QAgent:
                 best_actions.append(action)
 
         # 并列最优时随机选择，避免总是偏向列表中的第一个动作。
-        selected_action = random.choice(best_actions)
+        selected_action = self.rng.choice(best_actions)
         return selected_action
     
     def learn(self, state, action, reward, next_state, done):

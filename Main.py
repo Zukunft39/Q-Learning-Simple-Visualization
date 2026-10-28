@@ -3,7 +3,7 @@ from QAgent import QAgent
 
 
 def main():
-    env = GridWorld(mode="fixed", seed=42)
+    env = GridWorld(mode="fixed", seed=99999999)
     actions = ["w", "a", "s", "d"]
 
     # 只创建一次智能体，测试时继续使用它已经学到的 Q 表。
