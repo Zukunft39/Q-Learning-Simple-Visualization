@@ -4,7 +4,7 @@
 
 ## 启动
 
-从 [GitHub Releases](https://github.com/Zukunft39/Q-Learning-Test/releases/latest) 下载 [GridWorldLearningLab.exe](https://github.com/Zukunft39/Q-Learning-Test/releases/latest/download/GridWorldLearningLab.exe)，放到可写目录后双击运行，无需安装 Python。
+从 [GitHub Releases](https://github.com/Zukunft39/Q-Learning-Simple-Visualization/releases/latest) 下载 [GridWorldLearningLab.exe](https://github.com/Zukunft39/Q-Learning-Simple-Visualization/releases/latest/download/GridWorldLearningLab.exe)，放到可写目录后双击运行，无需安装 Python。
 
 可执行程序在 Releases 发布；仓库保留源码和打包脚本。从源码自行打包后，EXE 会生成在 `dist/`。
 
