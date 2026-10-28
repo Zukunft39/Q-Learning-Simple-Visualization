@@ -4,7 +4,9 @@
 
 ## 启动
 
-优先双击 `dist/GridWorldLearningLab.exe`，无需另外安装 Python。
+从 [GitHub Releases](https://github.com/Zukunft39/Q-Learning-Test/releases/latest) 下载 [GridWorldLearningLab.exe](https://github.com/Zukunft39/Q-Learning-Test/releases/latest/download/GridWorldLearningLab.exe)，放到可写目录后双击运行，无需安装 Python。
+
+可执行程序在 Releases 发布；仓库保留源码和打包脚本。从源码自行打包后，EXE 会生成在 `dist/`。
 
 源码启动：
 
@@ -17,6 +19,14 @@ python LearningLab.py
 ```powershell
 python -m pip install -r requirements.txt
 ```
+
+## 界面与示例曲线
+
+![学习实验室界面](docs/images/learning-lab.png)
+
+![1000 局学习曲线示例](docs/images/learning-curve.png)
+
+示例参数：fixed，地图种子 99999999，智能体种子 0，训练 1000 局，每局上限 300 步，alpha=0.1，gamma=0.95，epsilon=0.2。
 
 ## 操作
 
